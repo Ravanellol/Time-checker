@@ -140,44 +140,29 @@ a {
     }
   }
 
-/* Ultra-small screens (Burger Menu) */
+/* Ultra-small screens (Icons statt Menütext) */
 @media (max-width: 550px) {
-  .sidebar {
-    transform: translateX(-100%);
-    position: absolute;
-    z-index: 1000;
-    background: white;
-    height: 100vh;
-    top: 0;
-    left: 0;
+  .sidebar ul li a::before {
+    content: '';
   }
 
-  .sidebar.active {
-    transform: translateX(0);
+  .sidebar ul li:nth-child(1) a::before {
+    content: '⏱';
   }
 
-  .burger {
-    display: block;
-    position: absolute;
-    top: 1rem;
-    left: 1rem;
-    width: 30px;
-    height: 30px;
-    cursor: pointer;
-    z-index: 1001;
+  .sidebar ul li:nth-child(2) a::before {
+    content: '🔢';
   }
 
-  .burger div {
-    width: 100%;
-    height: 4px;
-    background: #007bff;
-    margin: 5px 0;
+  .sidebar ul li:nth-child(3) a::before {
+    content: '🏖';
+  }
+
+  .sidebar ul li a {
+    font-size: 0;
+  }
+
+  .sidebar ul li a::before {
+    font-size: 1.5rem;
   }
 }
-
-/* Default: hide burger */
-.burger {
-  display: none;
-}
-
-  
