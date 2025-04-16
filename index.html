@@ -39,9 +39,10 @@
 
   <script>
     function zeitZuMinuten(zeit) {
-      const [h, m] = zeit.split(":".map(Number));
-      return h * 60 + m;
-    }
+  const [h, m] = zeit.split(":").map(Number);
+  return h * 60 + m;
+}
+
 
     function berechnen() {
       const start = document.getElementById("start").value;
