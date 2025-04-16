@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zeit-Umrechnung</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <nav class="sidebar">
+      <h2>🕒 Menü</h2>
+      <ul>
+        <li><a href="index.html">Arbeitszeit</a></li>
+        <li><a href="umrechnung.html">Zeit-Umrechnung</a></li>
+        <li><a href="ferien.html">Ferienstunden</a></li>
+      </ul>
+    </nav>
+
+    <main class="content">
+      <h2>⏱ Zeit-Umrechnung (z. B. 8,24 ➝ 8h 14min)</h2>
+
+      <label>Zeit im Dezimalformat (z. B. 7,75):
+        <input type="text" id="dezimalZeit" placeholder="z. B. 8,24">
+      </label>
+
+      <button onclick="umrechnen()">Umrechnen</button>
+
+      <p id="ausgabe"></p>
+    </main>
+  </div>
+
+  <script>
+    function umrechnen() {
+      const input = document.getElementById("dezimalZeit").value.replace(",", ".");
+      const dezimal = parseFloat(input);
+
+      if (isNaN(dezimal)) {
+        document.getElementById("ausgabe").textContent = "Bitte eine gültige Dezimalzahl eingeben.";
+        return;
+      }
+
+      const stunden = Math.floor(dezimal);
+      const minuten = Math.round((dezimal - stunden) * 60);
+
+      document.getElementById("ausgabe").textContent =
+        `${dezimal} Stunden entsprechen ${stunden} Stunden und ${minuten} Minuten.`;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ferienstunden-Rechner</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <nav class="sidebar">
+      <h2>🕒 Menü</h2>
+      <ul>
+        <li><a href="index.html">Arbeitszeit</a></li>
+        <li><a href="umrechnung.html">Zeit-Umrechnung</a></li>
+        <li><a href="ferien.html">Ferienstunden</a></li>
+      </ul>
+    </nav>
+
+    <main class="content">
+      <h2>🏖 Ferienstunden ➝ Tage</h2>
+
+      <label>Ferienstunden gesamt:
+        <input type="number" id="stunden" placeholder="z. B. 200">
+      </label>
+
+      <label>Arbeitsstunden pro Tag:
+        <input type="number" id="stundenProTag" value="8">
+      </label>
+
+      <button onclick="berechneFerientage()">Umrechnen</button>
+
+      <p id="ferienAusgabe"></p>
+    </main>
+  </div>
+
+  <script>
+    function berechneFerientage() {
+      const stunden = parseFloat(document.getElementById("stunden").value);
+      const proTag = parseFloat(document.getElementById("stundenProTag").value);
+
+      if (isNaN(stunden) || isNaN(proTag) || proTag <= 0) {
+        document.getElementById("ferienAusgabe").textContent = "Bitte gültige Werte eingeben.";
+        return;
+      }
+
+      const tage = stunden / proTag;
+      const gerundet = Math.round(tage * 100) / 100;
+
+      document.getElementById("ferienAusgabe").textContent =
+        `${stunden} Ferienstunden entsprechen ca. ${gerundet} Ferientagen (bei ${proTag}h/Tag)`;
+    }
+  </script>
+</body>
+</html>

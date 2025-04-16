@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arbeitszeitrechner</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <nav class="sidebar">
+      <h2>🕒 Menü</h2>
+      <ul>
+        <li><a href="index.html">Arbeitszeit</a></li>
+        <li><a href="umrechnung.html">Zeit-Umrechnung</a></li>
+        <li><a href="ferien.html">Ferienstunden</a></li>
+      </ul>
+    </nav>
+
+    <main class="content">
+      <h2>🕒 Arbeitszeitrechner</h2>
+      <label>Startzeit:
+        <input type="time" id="start">
+      </label>
+      <label>Pausenbeginn:
+        <input type="time" id="pauseStart">
+      </label>
+      <label>Pausenende:
+        <input type="time" id="pauseEnd">
+      </label>
+      <label>Endzeit:
+        <input type="time" id="end">
+      </label>
+      <button onclick="berechnen()">Berechnen</button>
+      <p id="ergebnis"></p>
+    </main>
+  </div>
+
+  <script>
+    function zeitZuMinuten(zeit) {
+      const [h, m] = zeit.split(":".map(Number));
+      return h * 60 + m;
+    }
+
+    function berechnen() {
+      const start = document.getElementById("start").value;
+      const pauseStart = document.getElementById("pauseStart").value;
+      const pauseEnd = document.getElementById("pauseEnd").value;
+      const end = document.getElementById("end").value;
+
+      if (!start || !pauseStart || !pauseEnd || !end) {
+        document.getElementById("ergebnis").textContent = "Bitte alle Zeiten ausfüllen.";
+        return;
+      }
+
+      const startMin = zeitZuMinuten(start);
+      const pauseStartMin = zeitZuMinuten(pauseStart);
+      const pauseEndMin = zeitZuMinuten(pauseEnd);
+      const endMin = zeitZuMinuten(end);
+
+      const arbeitszeit = (pauseStartMin - startMin) + (endMin - pauseEndMin);
+      const stunden = Math.floor(arbeitszeit / 60);
+      const minuten = arbeitszeit % 60;
+
+      document.getElementById("ergebnis").textContent =
+        `Gearbeitete Zeit: ${stunden} Stunden und ${minuten} Minuten`;
+    }
+  </script>
+</body>
+</html>
