@@ -147,7 +147,13 @@ a {
     .content {
       padding: 1.5rem;
     }
+    .footer-note {
+      display: none;
+    }
+
   }
+
+
 
 /* Ultra-small screens (Icons statt Menütext) */
 @media (max-width: 550px) {
@@ -174,8 +180,4 @@ a {
   .sidebar ul li a::before {
     font-size: 1.5rem;
   }
-
-.footer-note {
-  display: none;
-}
 }
