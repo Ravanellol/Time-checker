@@ -139,4 +139,45 @@ a {
       padding: 1.5rem;
     }
   }
+
+/* Ultra-small screens (Burger Menu) */
+@media (max-width: 550px) {
+  .sidebar {
+    transform: translateX(-100%);
+    position: absolute;
+    z-index: 1000;
+    background: white;
+    height: 100vh;
+    top: 0;
+    left: 0;
+  }
+
+  .sidebar.active {
+    transform: translateX(0);
+  }
+
+  .burger {
+    display: block;
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    z-index: 1001;
+  }
+
+  .burger div {
+    width: 100%;
+    height: 4px;
+    background: #007bff;
+    margin: 5px 0;
+  }
+}
+
+/* Default: hide burger */
+.burger {
+  display: none;
+}
+
   
