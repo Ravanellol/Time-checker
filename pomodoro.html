@@ -1,69 +1,213 @@
-<script>
-  let isRunning = false;
-  let isFocus = true;
-  let timer;
-  let remainingSeconds = 1500; // Standardwert
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Pomodoro-Timer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <nav class="sidebar">
+      <h2><a href="index.html">🕒 Home</a></h2>
+      <ul>
+        <li><a href="index.html">Arbeitszeit</a></li>
+        <li><a href="umrechnung.html">Zeit-Umrechnung</a></li>
+        <li><a href="ferien.html">Ferienstunden</a></li>
+        <li><a href="pomodoro.html">Pomodoro-Timer</a></li>
+        <p class="footer-note">© Made by LR</p>
+      </ul>
+    </nav>
 
-  const timerDisplay = document.getElementById("timer");
-  const phaseDisplay = document.getElementById("phase");
+    <main class="content">
+      <h2>🍅 Pomodoro-Timer</h2>
 
-  function getTimes() {
-    const focusMinutes = parseInt(document.getElementById("focusTime").value) || 25;
-    const breakMinutes = parseInt(document.getElementById("breakTime").value) || 5;
-    return {
-      focus: focusMinutes * 60,
-      break: breakMinutes * 60
-    };
-  }
+      <label>Fokuszeit (Minuten):
+        <input type="number" id="focusTime" value="25" min="1">
+      </label>
 
-  function updateDisplay() {
-    const minutes = Math.floor(remainingSeconds / 60).toString().padStart(2, "0");
-    const seconds = (remainingSeconds % 60).toString().padStart(2, "0");
-    timerDisplay.textContent = `${minutes}:${seconds}`;
-    phaseDisplay.textContent = isFocus ? "Fokuszeit" : "Pause";
-  }
+      <label>Pausenzeit (Minuten):
+        <input type="number" id="breakTime" value="5" min="1">
+      </label>
 
-  function startTimer() {
-    if (isRunning) return;
-    isRunning = true;
+      <p id="phase">Fokuszeit</p>
+      <h1 id="timer">25:00</h1>
 
-    if (remainingSeconds <= 0) {
-      const times = getTimes();
-      remainingSeconds = isFocus ? times.focus : times.break;
+      <button onclick="startTimer()">Start</button>
+      <button onclick="pauseTimer()">Pause</button>
+      <button onclick="resetTimer()">Zurücksetzen</button>
+
+      <hr style="margin: 2rem 0;">
+
+      <h2>✅ To-Do Liste</h2>
+
+      <div class="todo-wrapper">
+        <input type="text" id="todoInput" placeholder="Neue Aufgabe hinzufügen...">
+        <button onclick="addTodo()">Hinzufügen</button>
+
+        <ul id="todoList" class="todo-list" ondragover="event.preventDefault()"></ul>
+
+        <div id="doneSection" style="display:none;">
+          <h3>Erledigt</h3>
+          <ul id="doneList" class="done-list"></ul>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // ==== POMODORO TIMER ====
+    let isRunning = false;
+    let isFocus = true;
+    let timer;
+    let remainingSeconds = 1500;
+
+    const timerDisplay = document.getElementById("timer");
+    const phaseDisplay = document.getElementById("phase");
+
+    function getTimes() {
+      const focusMinutes = parseInt(document.getElementById("focusTime").value) || 25;
+      const breakMinutes = parseInt(document.getElementById("breakTime").value) || 5;
+      return {
+        focus: focusMinutes * 60,
+        break: breakMinutes * 60
+      };
     }
 
-    timer = setInterval(() => {
-      if (remainingSeconds > 0) {
-        remainingSeconds--;
-        updateDisplay();
-      } else {
-        clearInterval(timer);
-        isRunning = false;
-        isFocus = !isFocus;
+    function updateDisplay() {
+      const minutes = Math.floor(remainingSeconds / 60).toString().padStart(2, "0");
+      const seconds = (remainingSeconds % 60).toString().padStart(2, "0");
+      timerDisplay.textContent = `${minutes}:${seconds}`;
+      phaseDisplay.textContent = isFocus ? "Fokuszeit" : "Pause";
+    }
 
+    function startTimer() {
+      if (isRunning) return;
+      isRunning = true;
+
+      if (remainingSeconds <= 0) {
         const times = getTimes();
         remainingSeconds = isFocus ? times.focus : times.break;
-        updateDisplay();
-        startTimer(); // automatisch weiter
       }
-    }, 1000);
-  }
 
-  function pauseTimer() {
-    clearInterval(timer);
-    isRunning = false;
-  }
+      timer = setInterval(() => {
+        if (remainingSeconds > 0) {
+          remainingSeconds--;
+          updateDisplay();
+        } else {
+          clearInterval(timer);
+          isRunning = false;
+          isFocus = !isFocus;
+          const times = getTimes();
+          remainingSeconds = isFocus ? times.focus : times.break;
+          updateDisplay();
+          startTimer();
+        }
+      }, 1000);
+    }
 
-  function resetTimer() {
-    clearInterval(timer);
-    isRunning = false;
-    const times = getTimes();
-    remainingSeconds = isFocus ? times.focus : times.break;
+    function pauseTimer() {
+      clearInterval(timer);
+      isRunning = false;
+    }
+
+    function resetTimer() {
+      clearInterval(timer);
+      isRunning = false;
+      const times = getTimes();
+      remainingSeconds = isFocus ? times.focus : times.break;
+      updateDisplay();
+    }
+
+    const initial = getTimes();
+    remainingSeconds = initial.focus;
     updateDisplay();
-  }
 
-  // Initialanzeige mit Startwert
-  const initial = getTimes();
-  remainingSeconds = initial.focus;
-  updateDisplay();
-</script>
+    // ==== TODO LIST ====
+    const todoInput = document.getElementById("todoInput");
+    const todoList = document.getElementById("todoList");
+    const doneList = document.getElementById("doneList");
+    const doneSection = document.getElementById("doneSection");
+
+    function addTodo() {
+      const text = todoInput.value.trim();
+      if (text === "") return;
+
+      const li = createTodoItem(text);
+      todoList.appendChild(li);
+      todoInput.value = "";
+    }
+
+    function createTodoItem(text, done = false) {
+      const li = document.createElement("li");
+      li.draggable = true;
+      li.addEventListener("dragstart", () => li.classList.add("dragging"));
+      li.addEventListener("dragend", () => li.classList.remove("dragging"));
+
+      const itemLeft = document.createElement("div");
+      itemLeft.className = "todo-item-left";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = done;
+      checkbox.addEventListener("change", () => toggleDone(li, checkbox.checked));
+
+      const span = document.createElement("span");
+      span.textContent = text;
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.innerHTML = "🗑";
+      deleteBtn.className = "todo-delete";
+      deleteBtn.addEventListener("click", () => {
+        li.remove();
+        if (doneList.children.length === 0) {
+          doneSection.style.display = "none";
+        }
+      });
+
+      itemLeft.appendChild(checkbox);
+      itemLeft.appendChild(span);
+      li.appendChild(itemLeft);
+      li.appendChild(deleteBtn);
+
+      return li;
+    }
+
+    function toggleDone(li, done) {
+      if (done) {
+        doneList.appendChild(li);
+        doneSection.style.display = "block";
+      } else {
+        todoList.appendChild(li);
+        if (doneList.children.length === 0) {
+          doneSection.style.display = "none";
+        }
+      }
+    }
+
+    todoList.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      const afterElement = getDragAfterElement(todoList, e.clientY);
+      const dragging = document.querySelector(".dragging");
+      if (afterElement == null) {
+        todoList.appendChild(dragging);
+      } else {
+        todoList.insertBefore(dragging, afterElement);
+      }
+    });
+
+    function getDragAfterElement(container, y) {
+      const draggableElements = [...container.querySelectorAll("li:not(.dragging)")];
+
+      return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          return { offset: offset, element: child };
+        } else {
+          return closest;
+        }
+      }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+  </script>
+</body>
+</html>
