@@ -33,8 +33,8 @@
       <p id="pauseMessage" class="hidden"></p>
       <h1 id="timer">25:00</h1>
 
-      <button onclick="startTimer()">Start</button>
-      <button onclick="pauseTimer()">Pause</button>
+      <button onclick="startFocus()">Start</button>
+      <button onclick="startPause()">Pause</button>
       <button onclick="resetTimer()">Zurücksetzen</button>
 
       <hr style="margin: 2rem 0;">
@@ -57,9 +57,9 @@
 
   <script>
     let isRunning = false;
-    let isFocus = true;
     let timer;
-    let remainingSeconds = 1500;
+    let remainingSeconds = 0;
+    let currentMode = 'focus'; // focus or break
 
     const timerDisplay = document.getElementById("timer");
     const phaseDisplay = document.getElementById("phase");
@@ -78,24 +78,38 @@
       const minutes = Math.floor(remainingSeconds / 60).toString().padStart(2, "0");
       const seconds = (remainingSeconds % 60).toString().padStart(2, "0");
       timerDisplay.textContent = `${minutes}:${seconds}`;
-      phaseDisplay.textContent = isFocus ? "Fokuszeit" : "Pause";
 
-      if (!isFocus) {
+      if (currentMode === "focus") {
+        phaseDisplay.textContent = "Fokuszeit";
+        pauseMessage.classList.add("hidden");
+      } else {
+        phaseDisplay.textContent = "Pause";
         pauseMessage.classList.remove("hidden");
         pauseMessage.textContent = `☕ Pausenzeit läuft noch: ${minutes}:${seconds}`;
-      } else {
-        pauseMessage.classList.add("hidden");
       }
     }
 
-    function startTimer() {
+    function startFocus() {
+      clearInterval(timer);
+      const times = getTimes();
+      remainingSeconds = times.focus;
+      currentMode = "focus";
+      updateDisplay();
+      startCountdown();
+    }
+
+    function startPause() {
+      clearInterval(timer);
+      const times = getTimes();
+      remainingSeconds = times.break;
+      currentMode = "break";
+      updateDisplay();
+      startCountdown();
+    }
+
+    function startCountdown() {
       if (isRunning) return;
       isRunning = true;
-
-      if (remainingSeconds <= 0) {
-        const times = getTimes();
-        remainingSeconds = isFocus ? times.focus : times.break;
-      }
 
       timer = setInterval(() => {
         if (remainingSeconds > 0) {
@@ -104,46 +118,43 @@
         } else {
           clearInterval(timer);
           isRunning = false;
-          isFocus = !isFocus;
-          const times = getTimes();
-          remainingSeconds = isFocus ? times.focus : times.break;
-          updateDisplay();
-          startTimer();
+          if (currentMode === "focus") {
+            startPause();
+          } else {
+            startFocus();
+          }
         }
       }, 1000);
-    }
-
-    function pauseTimer() {
-      clearInterval(timer);
-      isRunning = false;
     }
 
     function resetTimer() {
       clearInterval(timer);
       isRunning = false;
       const times = getTimes();
-      remainingSeconds = isFocus ? times.focus : times.break;
+      currentMode = "focus";
+      remainingSeconds = times.focus;
       updateDisplay();
     }
 
     function updateFocusTime() {
-      if (!isRunning && isFocus) {
-        const focus = parseInt(document.getElementById("focusTime").value) || 25;
-        remainingSeconds = focus * 60;
+      if (!isRunning && currentMode === "focus") {
+        const times = getTimes();
+        remainingSeconds = times.focus;
         updateDisplay();
       }
     }
 
     function updateBreakTime() {
-      if (!isRunning && !isFocus) {
-        const pause = parseInt(document.getElementById("breakTime").value) || 5;
-        remainingSeconds = pause * 60;
+      if (!isRunning && currentMode === "break") {
+        const times = getTimes();
+        remainingSeconds = times.break;
         updateDisplay();
       }
     }
 
-    const initial = getTimes();
-    remainingSeconds = isFocus ? initial.focus : initial.break;
+    // Initialisieren
+    const times = getTimes();
+    remainingSeconds = times.focus;
     updateDisplay();
 
     // ==== TODO LIST ====
