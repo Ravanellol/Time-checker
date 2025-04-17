@@ -1,81 +1,69 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-  <meta charset="UTF-8">
-  <title>Pomodoro-Timer</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div class="container">
-    <nav class="sidebar">
-      <h2><a href="index.html">🕒 Home</a></h2>
-      <ul>
-        <li><a href="index.html">Arbeitszeit</a></li>
-        <li><a href="umrechnung.html">Zeit-Umrechnung</a></li>
-        <li><a href="ferien.html">Ferienstunden</a></li>
-        <li><a href="pomodoro.html">Pomodoro-Timer</a></li>
-        <p class="footer-note">© Made by LR</p>
-      </ul>
-    </nav>
+<script>
+  let isRunning = false;
+  let isFocus = true;
+  let timer;
+  let remainingSeconds = 1500; // Standardwert
 
-    <main class="content">
-      <h2>🍅 Pomodoro-Timer</h2>
-      <p id="phase">Fokuszeit</p>
-      <h1 id="timer">25:00</h1>
+  const timerDisplay = document.getElementById("timer");
+  const phaseDisplay = document.getElementById("phase");
 
-      <button onclick="startTimer()">Start</button>
-      <button onclick="pauseTimer()">Pause</button>
-      <button onclick="resetTimer()">Zurücksetzen</button>
-    </main>
-  </div>
+  function getTimes() {
+    const focusMinutes = parseInt(document.getElementById("focusTime").value) || 25;
+    const breakMinutes = parseInt(document.getElementById("breakTime").value) || 5;
+    return {
+      focus: focusMinutes * 60,
+      break: breakMinutes * 60
+    };
+  }
 
-  <script>
-    let isRunning = false;
-    let isFocus = true;
-    let timer;
-    let remainingSeconds = 1500; // 25 Minuten
+  function updateDisplay() {
+    const minutes = Math.floor(remainingSeconds / 60).toString().padStart(2, "0");
+    const seconds = (remainingSeconds % 60).toString().padStart(2, "0");
+    timerDisplay.textContent = `${minutes}:${seconds}`;
+    phaseDisplay.textContent = isFocus ? "Fokuszeit" : "Pause";
+  }
 
-    const timerDisplay = document.getElementById("timer");
-    const phaseDisplay = document.getElementById("phase");
+  function startTimer() {
+    if (isRunning) return;
+    isRunning = true;
 
-    function updateDisplay() {
-      const minutes = Math.floor(remainingSeconds / 60).toString().padStart(2, "0");
-      const seconds = (remainingSeconds % 60).toString().padStart(2, "0");
-      timerDisplay.textContent = `${minutes}:${seconds}`;
-      phaseDisplay.textContent = isFocus ? "Fokuszeit" : "Pause";
+    if (remainingSeconds <= 0) {
+      const times = getTimes();
+      remainingSeconds = isFocus ? times.focus : times.break;
     }
 
-    function startTimer() {
-      if (isRunning) return;
-      isRunning = true;
-      timer = setInterval(() => {
-        if (remainingSeconds > 0) {
-          remainingSeconds--;
-          updateDisplay();
-        } else {
-          clearInterval(timer);
-          isRunning = false;
-          isFocus = !isFocus;
-          remainingSeconds = isFocus ? 1500 : 300; // 25 Min Fokus, 5 Min Pause
-          updateDisplay();
-          startTimer(); // direkt weiter zur nächsten Phase
-        }
-      }, 1000);
-    }
+    timer = setInterval(() => {
+      if (remainingSeconds > 0) {
+        remainingSeconds--;
+        updateDisplay();
+      } else {
+        clearInterval(timer);
+        isRunning = false;
+        isFocus = !isFocus;
 
-    function pauseTimer() {
-      clearInterval(timer);
-      isRunning = false;
-    }
+        const times = getTimes();
+        remainingSeconds = isFocus ? times.focus : times.break;
+        updateDisplay();
+        startTimer(); // automatisch weiter
+      }
+    }, 1000);
+  }
 
-    function resetTimer() {
-      clearInterval(timer);
-      isRunning = false;
-      remainingSeconds = isFocus ? 1500 : 300;
-      updateDisplay();
-    }
+  function pauseTimer() {
+    clearInterval(timer);
+    isRunning = false;
+  }
 
+  function resetTimer() {
+    clearInterval(timer);
+    isRunning = false;
+    const times = getTimes();
+    remainingSeconds = isFocus ? times.focus : times.break;
     updateDisplay();
-  </script>
-</body>
-</html>
+  }
+
+  // Initialanzeige mit Startwert
+  const initial = getTimes();
+  remainingSeconds = initial.focus;
+  updateDisplay();
+</script>
