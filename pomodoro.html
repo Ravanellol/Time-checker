@@ -30,6 +30,7 @@
       </label>
 
       <p id="phase">Fokuszeit</p>
+      <p id="pauseMessage" class="hidden"></p>
       <h1 id="timer">25:00</h1>
 
       <button onclick="startTimer()">Start</button>
@@ -55,7 +56,6 @@
   </div>
 
   <script>
-    // ==== POMODORO TIMER ====
     let isRunning = false;
     let isFocus = true;
     let timer;
@@ -63,6 +63,7 @@
 
     const timerDisplay = document.getElementById("timer");
     const phaseDisplay = document.getElementById("phase");
+    const pauseMessage = document.getElementById("pauseMessage");
 
     function getTimes() {
       const focusMinutes = parseInt(document.getElementById("focusTime").value) || 25;
@@ -78,6 +79,13 @@
       const seconds = (remainingSeconds % 60).toString().padStart(2, "0");
       timerDisplay.textContent = `${minutes}:${seconds}`;
       phaseDisplay.textContent = isFocus ? "Fokuszeit" : "Pause";
+
+      if (!isFocus) {
+        pauseMessage.classList.remove("hidden");
+        pauseMessage.textContent = `☕ Pausenzeit läuft noch: ${minutes}:${seconds}`;
+      } else {
+        pauseMessage.classList.add("hidden");
+      }
     }
 
     function startTimer() {
@@ -135,7 +143,7 @@
     }
 
     const initial = getTimes();
-    remainingSeconds = initial.focus;
+    remainingSeconds = isFocus ? initial.focus : initial.break;
     updateDisplay();
 
     // ==== TODO LIST ====
