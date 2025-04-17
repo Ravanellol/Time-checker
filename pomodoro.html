@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Pomodoro-Timer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <nav class="sidebar">
+      <h2><a href="index.html">🕒 Home</a></h2>
+      <ul>
+        <li><a href="index.html">Arbeitszeit</a></li>
+        <li><a href="umrechnung.html">Zeit-Umrechnung</a></li>
+        <li><a href="ferien.html">Ferienstunden</a></li>
+        <li><a href="pomodoro.html">Pomodoro-Timer</a></li>
+        <p class="footer-note">© Made by LR</p>
+      </ul>
+    </nav>
+
+    <main class="content">
+      <h2>🍅 Pomodoro-Timer</h2>
+      <p id="phase">Fokuszeit</p>
+      <h1 id="timer">25:00</h1>
+
+      <button onclick="startTimer()">Start</button>
+      <button onclick="pauseTimer()">Pause</button>
+      <button onclick="resetTimer()">Zurücksetzen</button>
+    </main>
+  </div>
+
+  <script>
+    let isRunning = false;
+    let isFocus = true;
+    let timer;
+    let remainingSeconds = 1500; // 25 Minuten
+
+    const timerDisplay = document.getElementById("timer");
+    const phaseDisplay = document.getElementById("phase");
+
+    function updateDisplay() {
+      const minutes = Math.floor(remainingSeconds / 60).toString().padStart(2, "0");
+      const seconds = (remainingSeconds % 60).toString().padStart(2, "0");
+      timerDisplay.textContent = `${minutes}:${seconds}`;
+      phaseDisplay.textContent = isFocus ? "Fokuszeit" : "Pause";
+    }
+
+    function startTimer() {
+      if (isRunning) return;
+      isRunning = true;
+      timer = setInterval(() => {
+        if (remainingSeconds > 0) {
+          remainingSeconds--;
+          updateDisplay();
+        } else {
+          clearInterval(timer);
+          isRunning = false;
+          isFocus = !isFocus;
+          remainingSeconds = isFocus ? 1500 : 300; // 25 Min Fokus, 5 Min Pause
+          updateDisplay();
+          startTimer(); // direkt weiter zur nächsten Phase
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      clearInterval(timer);
+      isRunning = false;
+    }
+
+    function resetTimer() {
+      clearInterval(timer);
+      isRunning = false;
+      remainingSeconds = isFocus ? 1500 : 300;
+      updateDisplay();
+    }
+
+    updateDisplay();
+  </script>
+</body>
+</html>
