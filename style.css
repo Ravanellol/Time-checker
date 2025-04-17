@@ -333,3 +333,15 @@ a {
   color: red;
 }
 
+/* --- Pomodoro Pausennachricht --- */
+#pauseMessage {
+  font-style: italic;
+  color: #555;
+  margin-top: -1rem;
+  margin-bottom: 1.5rem;
+}
+
+.hidden {
+  display: none;
+}
+
