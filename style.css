@@ -335,12 +335,10 @@ a {
   color: red;
 }
 
-@media (max-width: 550px) {
-  ...
   .sidebar ul li:nth-child(4) a::before {
     content: '🍅';
   }
-}
+
 
 
 
