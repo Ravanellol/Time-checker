@@ -22,11 +22,11 @@
       <h2>🍅 Pomodoro-Timer</h2>
 
       <label>Fokuszeit (Minuten):
-        <input type="number" id="focusTime" value="25" min="1">
+        <input type="number" id="focusTime" value="25" min="1" oninput="updateFocusTime()">
       </label>
 
       <label>Pausenzeit (Minuten):
-        <input type="number" id="breakTime" value="5" min="1">
+        <input type="number" id="breakTime" value="5" min="1" oninput="updateBreakTime()">
       </label>
 
       <p id="phase">Fokuszeit</p>
@@ -116,6 +116,22 @@
       const times = getTimes();
       remainingSeconds = isFocus ? times.focus : times.break;
       updateDisplay();
+    }
+
+    function updateFocusTime() {
+      if (!isRunning && isFocus) {
+        const focus = parseInt(document.getElementById("focusTime").value) || 25;
+        remainingSeconds = focus * 60;
+        updateDisplay();
+      }
+    }
+
+    function updateBreakTime() {
+      if (!isRunning && !isFocus) {
+        const pause = parseInt(document.getElementById("breakTime").value) || 5;
+        remainingSeconds = pause * 60;
+        updateDisplay();
+      }
     }
 
     const initial = getTimes();
