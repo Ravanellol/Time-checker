@@ -106,24 +106,24 @@
     }
 
     function startCountdown() {
-      if (isRunning) return;
-      isRunning = true;
+  clearInterval(timer); // <- wichtig!
+  isRunning = true;
 
-      timer = setInterval(() => {
-        if (remainingSeconds > 0) {
-          remainingSeconds--;
-          updateDisplay();
-        } else {
-          clearInterval(timer);
-          isRunning = false;
-          if (currentMode === "focus") {
-            startPause();
-          } else {
-            startFocus();
-          }
-        }
-      }, 1000);
+  timer = setInterval(() => {
+    if (remainingSeconds > 0) {
+      remainingSeconds--;
+      updateDisplay();
+    } else {
+      clearInterval(timer);
+      isRunning = false;
+      if (currentMode === "focus") {
+        startPause();
+      } else {
+        startFocus();
+      }
     }
+  }, 1000);
+}
 
     function resetTimer() {
       clearInterval(timer);
