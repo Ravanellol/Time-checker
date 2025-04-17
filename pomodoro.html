@@ -30,7 +30,6 @@
       </label>
 
       <p id="phase">Fokuszeit</p>
-      <p id="pauseMessage" class="hidden"></p>
       <h1 id="timer">25:00</h1>
 
       <button onclick="startFocus()">Start</button>
@@ -74,20 +73,19 @@
       };
     }
 
-    function updateDisplay() {
-      const minutes = Math.floor(remainingSeconds / 60).toString().padStart(2, "0");
-      const seconds = (remainingSeconds % 60).toString().padStart(2, "0");
-      timerDisplay.textContent = `${minutes}:${seconds}`;
+ function updateDisplay() {
+  const minutes = Math.floor(remainingSeconds / 60).toString().padStart(2, "0");
+  const seconds = (remainingSeconds % 60).toString().padStart(2, "0");
 
-      if (currentMode === "focus") {
-        phaseDisplay.textContent = "Fokuszeit";
-        pauseMessage.classList.add("hidden");
-      } else {
-        phaseDisplay.textContent = "Pause";
-        pauseMessage.classList.remove("hidden");
-        pauseMessage.textContent = `☕ Pausenzeit läuft noch: ${minutes}:${seconds}`;
-      }
-    }
+  if (currentMode === "focus") {
+    phaseDisplay.textContent = "Fokuszeit";
+    timerDisplay.textContent = `${minutes}:${seconds}`;
+  } else {
+    phaseDisplay.textContent = "Pause";
+    timerDisplay.textContent = `☕ Pausenzeit läuft noch: ${minutes}:${seconds}`;
+  }
+}
+
 
     function startFocus() {
       clearInterval(timer);
