@@ -17,26 +17,30 @@
         <li><a href="ferien.html">Ferienstunden</a></li>
         <li><a href="pomodoro.html">Pomodoro-Timer</a></li>
         <p class="footer-note">© Made by LR</p>
-
       </ul>
     </nav>
 
     <main class="content">
       <h2>🕒 Arbeitszeitrechner</h2>
 
-      <label>Startzeit:
-        <input type="time" id="start">
-      </label>
-      <label>Pausenbeginn:
-        <input type="time" id="pauseStart">
-      </label>
-      <label>Pausenende:
-        <input type="time" id="pauseEnd">
-      </label>
-      <label>Endzeit:
-        <input type="time" id="end">
-      </label>
+      <div id="zeitContainer">
+        <div class="zeitblock">
+          <label>Startzeit:
+            <input type="time" class="start">
+          </label>
+          <label>Pausenbeginn:
+            <input type="time" class="pauseStart">
+          </label>
+          <label>Pausenende:
+            <input type="time" class="pauseEnd">
+          </label>
+          <label>Endzeit:
+            <input type="time" class="end">
+          </label>
+        </div>
+      </div>
 
+      <button id="addBlock">+ Zeitblock hinzufügen</button>
       <button onclick="berechnen()">Berechnen</button>
 
       <p id="ergebnis"></p>
@@ -52,28 +56,57 @@
     }
 
     function berechnen() {
-      const start = document.getElementById("start").value;
-      const pauseStart = document.getElementById("pauseStart").value;
-      const pauseEnd = document.getElementById("pauseEnd").value;
-      const end = document.getElementById("end").value;
+      let totalMinuten = 0;
+      const blocks = document.querySelectorAll(".zeitblock");
+      for (const block of blocks) {
+        const start = block.querySelector(".start").value;
+        const pauseStart = block.querySelector(".pauseStart").value;
+        const pauseEnd = block.querySelector(".pauseEnd").value;
+        const end = block.querySelector(".end").value;
 
-      if (!start || !pauseStart || !pauseEnd || !end) {
-        document.getElementById("ergebnis").textContent = "Bitte alle Zeiten ausfüllen.";
-        return;
+        if (!start || !pauseStart || !pauseEnd || !end) {
+          document.getElementById("ergebnis").textContent = "Bitte alle Zeiten ausfüllen.";
+          return;
+        }
+
+        const startMin = zeitZuMinuten(start);
+        const pauseStartMin = zeitZuMinuten(pauseStart);
+        const pauseEndMin = zeitZuMinuten(pauseEnd);
+        const endMin = zeitZuMinuten(end);
+
+        const arbeitszeit = (pauseStartMin - startMin) + (endMin - pauseEndMin);
+        totalMinuten += arbeitszeit;
       }
 
-      const startMin = zeitZuMinuten(start);
-      const pauseStartMin = zeitZuMinuten(pauseStart);
-      const pauseEndMin = zeitZuMinuten(pauseEnd);
-      const endMin = zeitZuMinuten(end);
-
-      const arbeitszeit = (pauseStartMin - startMin) + (endMin - pauseEndMin);
-      const stunden = Math.floor(arbeitszeit / 60);
-      const minuten = arbeitszeit % 60;
+      const stunden = Math.floor(totalMinuten / 60);
+      const minuten = totalMinuten % 60;
 
       document.getElementById("ergebnis").textContent =
-        `Gearbeitete Zeit: ${stunden} Stunden und ${minuten} Minuten`;
+        `Gesamtzeit: ${stunden} Stunden und ${minuten} Minuten`;
     }
+
+    document.getElementById("addBlock").addEventListener("click", () => {
+      const container = document.getElementById("zeitContainer");
+      const clone = container.firstElementChild.cloneNode(true);
+      clone.querySelectorAll("input").forEach(input => input.value = "");
+      container.appendChild(clone);
+    });
+
+    // ENTER-Tastensteuerung
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        const inputs = Array.from(document.querySelectorAll("input[type='time']"));
+        const index = inputs.indexOf(document.activeElement);
+        if (index !== -1) {
+          e.preventDefault();
+          if (index + 1 < inputs.length) {
+            inputs[index + 1].focus();
+          } else {
+            berechnen();
+          }
+        }
+      }
+    });
   </script>
 </body>
 </html>
