@@ -42,6 +42,7 @@
 
       <button id="addBlock">+ Zeitblock hinzufügen</button>
       <button onclick="berechnen()">Berechnen</button>
+      <button id="resetBtn">Zurücksetzen</button>
 
       <p id="ergebnis"></p>
     </main>
@@ -58,7 +59,10 @@
     function berechnen() {
       let totalMinuten = 0;
       const blocks = document.querySelectorAll(".zeitblock");
-      for (const block of blocks) {
+      let ausgabe = "";
+
+      for (let i = 0; i < blocks.length; i++) {
+        const block = blocks[i];
         const start = block.querySelector(".start").value;
         const pauseStart = block.querySelector(".pauseStart").value;
         const pauseEnd = block.querySelector(".pauseEnd").value;
@@ -74,15 +78,20 @@
         const pauseEndMin = zeitZuMinuten(pauseEnd);
         const endMin = zeitZuMinuten(end);
 
-        const arbeitszeit = (pauseStartMin - startMin) + (endMin - pauseEndMin);
-        totalMinuten += arbeitszeit;
+        const blockMinuten = (pauseStartMin - startMin) + (endMin - pauseEndMin);
+        totalMinuten += blockMinuten;
+
+        if (blocks.length > 1) {
+          const blockStd = Math.floor(blockMinuten / 60);
+          const blockMin = blockMinuten % 60;
+          ausgabe += `Block ${i + 1}: ${blockStd} Stunden und ${blockMin} Minuten<br>`;
+        }
       }
 
       const stunden = Math.floor(totalMinuten / 60);
       const minuten = totalMinuten % 60;
-
-      document.getElementById("ergebnis").textContent =
-        `Gesamtzeit: ${stunden} Stunden und ${minuten} Minuten`;
+      ausgabe += `<strong>Gesamtzeit: ${stunden} Stunden und ${minuten} Minuten</strong>`;
+      document.getElementById("ergebnis").innerHTML = ausgabe;
     }
 
     document.getElementById("addBlock").addEventListener("click", () => {
@@ -92,7 +101,21 @@
       container.appendChild(clone);
     });
 
-    // ENTER-Tastensteuerung
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      const container = document.getElementById("zeitContainer");
+      const blocks = container.querySelectorAll(".zeitblock");
+
+      blocks.forEach((block, index) => {
+        if (index === 0) {
+          block.querySelectorAll("input").forEach(input => input.value = "");
+        } else {
+          block.remove();
+        }
+      });
+
+      document.getElementById("ergebnis").textContent = "";
+    });
+
     document.addEventListener("keydown", function(e) {
       if (e.key === "Enter") {
         const inputs = Array.from(document.querySelectorAll("input[type='time']"));
