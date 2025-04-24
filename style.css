@@ -133,8 +133,8 @@ a {
   transition: background 0.2s ease;
 }
 
-#resetBtn:hover {
-  background: #d9534f;
+button#resetBtn {
+  background: #ed1009;
 }
 
 
