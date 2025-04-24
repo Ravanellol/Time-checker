@@ -119,6 +119,24 @@ a {
     margin-top: 1.5rem;
     font-weight: bold;
   }
+
+#resetBtn {
+  width: 100%;
+  padding: 0.75rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background 0.2s ease;
+}
+
+#resetBtn:hover {
+  background: #d9534f;
+}
+
   
   /* Responsive */
   @media (max-width: 768px) {
