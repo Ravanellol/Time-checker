@@ -137,6 +137,26 @@ button#resetBtn {
   background: #ed1009;
 }
 
+/* --- Motivationsbox --- */
+.motivation-box {
+  background-color: #f9f9f9;
+  border-left: 5px solid #007bff;
+  padding: 1rem 1.5rem;
+  font-style: italic;
+  color: #333;
+  border-radius: 8px;
+  line-height: 1.6;
+}
+
+/* --- Motivation Menüpunkt nur auf Desktop anzeigen --- */
+@media (max-width: 768px) {
+  .sidebar ul li.desktop-only {
+    display: none;
+  }
+}
+
+
+
 
   
   /* Responsive */
