@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zeitrechner</title>
+<meta name="description" content="Arbeitszeit, Dezimal-Umrechnung und Ferientage – präzis auf die Minute.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='44' fill='%23FFFFFF' stroke='%23141414' stroke-width='9'/%3E%3Cline x1='50' y1='50' x2='32.5' y2='39.5' stroke='%23141414' stroke-width='9'/%3E%3Cline x1='50' y1='50' x2='73' y2='29.5' stroke='%23141414' stroke-width='6.5'/%3E%3Cline x1='50' y1='50' x2='39' y2='69' stroke='%23E2001A' stroke-width='4'/%3E%3Ccircle cx='37.5' cy='71.5' r='6.5' fill='%23E2001A'/%3E%3Ccircle cx='50' cy='50' r='4.5' fill='%23141414'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,500;125,600;125,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F4F4F1;
+    --surface:#FFFFFF;
+    --ink:#131312;
+    --soft:#71716B;
+    --line:#E2E2DD;
+    --line-strong:#C9C9C3;
+    --accent:#E2001A;
+    --radius:20px;
+    --f-display:"Archivo",sans-serif;
+    --f-body:"Inter",sans-serif;
+    --f-mono:"IBM Plex Mono",monospace;
+    --ease:cubic-bezier(.2,.7,.2,1);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#0F0F0E;
+      --surface:#181816;
+      --ink:#F1F1EC;
+      --soft:#93938B;
+      --line:#282824;
+      --line-strong:#3A3A35;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  ::selection{background:var(--accent);color:#fff}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--f-body);
+    font-size:15px;
+    line-height:1.55;
+    min-height:100vh;
+    min-height:100svh;
+    display:flex;
+    flex-direction:column;
+  }
+  .wrap{width:100%;max-width:860px;margin:0 auto;padding-left:clamp(20px,5vw,40px);padding-right:clamp(20px,5vw,40px)}
+
+  /* ── Auftritt ─────────────────────────────── */
+  .reveal{opacity:0;transform:translateY(16px);animation:rise .8s var(--ease) forwards}
+  .d1{animation-delay:.05s}.d2{animation-delay:.18s}.d3{animation-delay:.30s}.d4{animation-delay:.42s}
+  @keyframes rise{to{opacity:1;transform:none}}
+
+  /* ── Hero ─────────────────────────────────── */
+  header{padding-top:32px;margin-top:auto}
+  .hero{
+    display:flex;align-items:flex-end;justify-content:space-between;
+    gap:clamp(20px,5vw,48px);
+  }
+  .hero h1{
+    font-family:var(--f-display);
+    font-stretch:125%;
+    font-weight:700;
+    font-size:clamp(42px,9.5vw,96px);
+    line-height:.92;
+    letter-spacing:-.035em;
+    text-transform:uppercase;
+  }
+  .hero h1 .dot{color:var(--accent)}
+  .tagline{
+    margin-top:18px;
+    max-width:44ch;
+    color:var(--soft);
+    font-size:clamp(14px,1.8vw,16px);
+  }
+  .clockcol{flex:none;text-align:center}
+  #uhr{width:clamp(104px,17vw,156px);height:auto;display:block}
+  .clockmeta{
+    margin-top:10px;
+    font-family:var(--f-mono);
+    font-size:10.5px;
+    letter-spacing:.08em;
+    color:var(--soft);
+    text-transform:uppercase;
+  }
+  .clockmeta b{color:var(--accent);font-weight:500}
+
+  /* ── Sekundenlineal ──────────────────────── */
+  .ruler{
+    display:block;width:100%;height:30px;
+    margin:clamp(28px,5vh,48px) 0 0;
+  }
+  .ruler line{stroke:var(--line-strong);vector-effect:non-scaling-stroke}
+  .ruler line.major{stroke:var(--ink)}
+  .ruler #secTick{stroke:var(--accent);stroke-width:2}
+
+  /* ── Tabs ─────────────────────────────────── */
+  nav{
+    position:relative;
+    display:flex;gap:clamp(18px,4vw,36px);
+    border-bottom:1px solid var(--line);
+    margin-top:6px;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  nav::-webkit-scrollbar{display:none}
+  nav button{
+    font:500 12.5px var(--f-body);
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--soft);
+    background:none;border:0;
+    padding:16px 2px 15px;
+    cursor:pointer;
+    white-space:nowrap;
+    transition:color .2s;
+  }
+  nav button:hover{color:var(--ink)}
+  nav button[aria-selected="true"]{color:var(--ink)}
+  nav button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  #tabline{
+    position:absolute;bottom:-1px;height:2px;
+    background:var(--accent);
+    transition:left .35s var(--ease), width .35s var(--ease);
+  }
+
+  /* ── Panels ───────────────────────────────── */
+  main{flex:initial;padding-top:clamp(24px,4vh,40px);padding-bottom:32px;margin-bottom:auto}
+  section[hidden]{display:none}
+  section{animation:panel .45s var(--ease)}
+  @keyframes panel{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:clamp(22px,4.5vw,40px);
+  }
+  h2{
+    font-family:var(--f-display);
+    font-stretch:125%;
+    font-weight:600;
+    font-size:clamp(19px,2.6vw,24px);
+    letter-spacing:-.015em;
+  }
+  .hint{color:var(--soft);font-size:13.5px;margin:6px 0 26px;max-width:52ch}
+
+  label{
+    display:block;
+    font-size:11px;font-weight:500;
+    color:var(--soft);
+    text-transform:uppercase;
+    letter-spacing:.09em;
+    margin-bottom:7px;
+  }
+  input[type="time"],input[type="text"],input[type="number"]{
+    width:100%;
+    font-family:var(--f-mono);
+    font-size:16px;
+    color:var(--ink);
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 14px;
+    transition:border-color .2s, background-color .2s;
+  }
+  input::placeholder{color:var(--soft);opacity:.6}
+  input:hover{border-color:var(--line-strong)}
+  input:focus{outline:none;border-color:var(--ink);background:var(--surface)}
+  input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .field{min-width:0}
+
+  /* ── Buttons ─────────────────────────────── */
+  .btnrow{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
+  .btn{
+    font:500 14px var(--f-body);
+    border-radius:999px;
+    padding:12px 24px;
+    cursor:pointer;
+    border:1px solid transparent;
+    transition:opacity .2s, border-color .2s, transform .1s;
+  }
+  .btn:active{transform:scale(.97)}
+  .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .btn-primary{background:var(--ink);color:var(--paper)}
+  .btn-primary:hover{opacity:.82}
+  .btn-ghost{background:none;color:var(--ink);border-color:var(--line-strong)}
+  .btn-ghost:hover{border-color:var(--ink)}
+  .btn-text{background:none;color:var(--soft);border:0;padding:12px 6px}
+  .btn-text:hover{color:var(--ink)}
+
+  /* ── Zeitblöcke ──────────────────────────── */
+  .block{
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:clamp(14px,3vw,20px);
+    margin-bottom:14px;
+  }
+  .block .tag{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin-bottom:14px;
+  }
+  .block .tag span{
+    font-family:var(--f-mono);
+    font-size:11px;letter-spacing:.06em;
+    color:var(--soft);text-transform:uppercase;
+  }
+  .block .remove{
+    font:inherit;font-size:12px;color:var(--soft);
+    background:none;border:0;cursor:pointer;
+    padding:2px 4px;border-radius:6px;
+    transition:color .2s;
+  }
+  .block .remove:hover{color:var(--accent)}
+  .block .remove:focus-visible{outline:2px solid var(--accent)}
+
+  /* ── Resultat ────────────────────────────── */
+  .result{
+    margin-top:28px;
+    padding-top:24px;
+    border-top:1px solid var(--line);
+    display:none;
+  }
+  .result.show{display:block;animation:panel .4s var(--ease)}
+  .result .big{
+    font-family:var(--f-mono);
+    font-weight:600;
+    font-size:clamp(44px,11vw,76px);
+    letter-spacing:-.03em;
+    font-variant-numeric:tabular-nums;
+    line-height:1.05;
+  }
+  .result .big em{
+    font-style:normal;
+    font-family:var(--f-body);
+    font-size:.34em;font-weight:500;
+    color:var(--soft);
+    letter-spacing:0;
+    margin:0 .1em 0 .12em;
+  }
+  .result .sub{color:var(--soft);font-size:13.5px;margin-top:10px}
+  .result .sub b{color:var(--ink);font-weight:600;font-family:var(--f-mono);font-size:13px}
+  .result.error .big{font-size:clamp(28px,6vw,40px);color:var(--soft)}
+
+  footer{
+    padding:28px 0 34px;
+  }
+  footer .wrap{
+    display:flex;justify-content:space-between;gap:16px;
+    color:var(--soft);font-size:12.5px;
+  }
+  footer .mono{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em}
+
+  @media (max-width:620px){
+    .hero{flex-direction:column-reverse;align-items:flex-start}
+    .clockcol{text-align:left}
+    .clockmeta{margin-top:8px}
+    .grid2{grid-template-columns:1fr 1fr}
+  }
+  @media (max-width:440px){
+    .grid2{grid-template-columns:1fr}
+    .panel{padding:20px 16px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important;transition:none !important}
+    .reveal{opacity:1;transform:none}
+  }
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <div class="hero">
+    <div class="reveal d1">
+      <h1>Zeit&shy;rechner<span class="dot">.</span></h1>
+      <p class="tagline">Arbeitszeit, Dezimal-Umrechnung und Ferientage – drei Werkzeuge, präzis auf die Minute.</p>
+    </div>
+    <div class="clockcol reveal d2">
+      <svg id="uhr" viewBox="0 0 100 100" role="img" aria-label="Bahnhofsuhr, aktuelle Zeit">
+        <circle cx="50" cy="50" r="47.5" fill="var(--surface)" stroke="var(--ink)" stroke-width="3.4"/>
+        <g id="ticks" stroke="var(--ink)"></g>
+        <line id="zH" x1="50" y1="50" x2="50" y2="27" stroke="var(--ink)" stroke-width="6.4"/>
+        <line id="zM" x1="50" y1="50" x2="50" y2="15.5" stroke="var(--ink)" stroke-width="4.6"/>
+        <g id="zS">
+          <line x1="50" y1="59" x2="50" y2="26" stroke="var(--accent)" stroke-width="2.2"/>
+          <circle cx="50" cy="26" r="4.6" fill="var(--accent)"/>
+        </g>
+        <circle cx="50" cy="50" r="2.6" fill="var(--ink)"/>
+      </svg>
+      <div class="clockmeta">Umlauf <b>58,5&thinsp;s</b> · Minutensprung</div>
+    </div>
+  </div>
+
+  <svg class="ruler reveal d3" id="ruler" viewBox="0 0 600 30" preserveAspectRatio="none" aria-hidden="true"></svg>
+
+  <nav class="reveal d3" role="tablist" aria-label="Werkzeuge">
+    <button role="tab" aria-selected="true"  data-tab="arbeit">Arbeitszeit</button>
+    <button role="tab" aria-selected="false" data-tab="umrechnung">Umrechnung</button>
+    <button role="tab" aria-selected="false" data-tab="ferien">Ferien</button>
+    <span id="tabline"></span>
+  </nav>
+</header>
+
+<main class="wrap reveal d4">
+  <!-- ═══ Arbeitszeit ═══ -->
+  <section id="tab-arbeit" role="tabpanel">
+    <div class="panel">
+      <h2>Arbeitszeit berechnen</h2>
+      <p class="hint">Start- und Endzeit eintragen, Pause optional. Mit Enter springst du zum nächsten Feld – ist alles ausgefüllt, wird gerechnet.</p>
+      <div id="blocks"></div>
+      <button class="btn btn-text" id="addBlock" type="button">+ Zeitblock hinzufügen</button>
+      <div class="btnrow">
+        <button class="btn btn-primary" id="calcWork" type="button">Berechnen</button>
+        <button class="btn btn-ghost" id="resetWork" type="button">Zurücksetzen</button>
+      </div>
+      <div class="result" id="workResult" aria-live="polite">
+        <div class="big" id="workBig"></div>
+        <div class="sub" id="workSub"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Umrechnung ═══ -->
+  <section id="tab-umrechnung" role="tabpanel" hidden>
+    <div class="panel">
+      <h2>Dezimal in Stunden &amp; Minuten</h2>
+      <p class="hint">Zum Beispiel wird aus 8,24 → 8 h 14 min. Komma oder Punkt, beides funktioniert.</p>
+      <div class="field">
+        <label for="decInput">Zeit im Dezimalformat</label>
+        <input type="text" id="decInput" inputmode="decimal" placeholder="z. B. 7,75">
+      </div>
+      <div class="btnrow">
+        <button class="btn btn-primary" id="calcDec" type="button">Umrechnen</button>
+        <button class="btn btn-ghost" id="resetDec" type="button">Zurücksetzen</button>
+      </div>
+      <div class="result" id="decResult" aria-live="polite">
+        <div class="big" id="decBig"></div>
+        <div class="sub" id="decSub"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Ferien ═══ -->
+  <section id="tab-ferien" role="tabpanel" hidden>
+    <div class="panel">
+      <h2>Ferienstunden in Tage</h2>
+      <p class="hint">Wie viele freie Tage stecken im Stundenguthaben?</p>
+      <div class="grid2">
+        <div class="field">
+          <label for="ferienStunden">Ferienstunden gesamt</label>
+          <input type="text" id="ferienStunden" inputmode="decimal" placeholder="z. B. 168">
+        </div>
+        <div class="field">
+          <label for="stundenProTag">Arbeitsstunden pro Tag</label>
+          <input type="text" id="stundenProTag" inputmode="decimal" placeholder="z. B. 8,4">
+        </div>
+      </div>
+      <div class="btnrow">
+        <button class="btn btn-primary" id="calcFerien" type="button">Umrechnen</button>
+        <button class="btn btn-ghost" id="resetFerien" type="button">Zurücksetzen</button>
+      </div>
+      <div class="result" id="ferienResult" aria-live="polite">
+        <div class="big" id="ferienBig"></div>
+        <div class="sub" id="ferienSub"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© Made by LR</span>
+    <span class="mono" id="clockLabel">--:--:--</span>
+  </div>
+</footer>
+
+<script>
+/* ═══ Bahnhofsuhr mit echter SBB-Mechanik ═══
+   Der Sekundenzeiger dreht in 58,5 s einmal herum,
+   wartet oben – und die Minute springt. */
+(function(){
+  const ticks=document.getElementById('ticks');
+  let t='';
+  for(let i=0;i<60;i++){
+    const big=i%5===0;
+    t+=`<line x1="50" y1="4" x2="50" y2="${big?13.5:8.2}" stroke-width="${big?3:1.2}" transform="rotate(${i*6} 50 50)"/>`;
+  }
+  ticks.innerHTML=t;
+
+  const zH=document.getElementById('zH'),
+        zM=document.getElementById('zM'),
+        zS=document.getElementById('zS'),
+        secTick=()=>document.getElementById('secTick'),
+        label=document.getElementById('clockLabel');
+  const SWEEP=58.5;
+  let lastLabel='';
+
+  function frame(){
+    const n=new Date();
+    const s=n.getSeconds()+n.getMilliseconds()/1000;
+    const sweep=Math.min(s/SWEEP,1);          // 0…1, dann Halt bei 12
+    const m=n.getMinutes(),h=n.getHours()%12;
+    zS.setAttribute('transform',`rotate(${sweep*360} 50 50)`);
+    zM.setAttribute('transform',`rotate(${m*6} 50 50)`);
+    zH.setAttribute('transform',`rotate(${h*30+m*0.5} 50 50)`);
+    const st=secTick();
+    if(st)st.setAttribute('transform',`translate(${sweep*600} 0)`);
+    const lbl=n.toTimeString().slice(0,8);
+    if(lbl!==lastLabel){label.textContent=lbl;lastLabel=lbl;}
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+
+/* ═══ Sekundenlineal ═══ */
+(function(){
+  const svg=document.getElementById('ruler');
+  let t='';
+  for(let i=0;i<=60;i++){
+    const x=i*10, major=i%5===0;
+    t+=`<line class="${major?'major':''}" x1="${x}" y1="30" x2="${x}" y2="${major?6:16}" stroke-width="${major?1.4:1}"/>`;
+  }
+  t+=`<line id="secTick" x1="0" y1="30" x2="0" y2="2"/>`;
+  svg.innerHTML=t;
+})();
+
+/* ═══ Tabs mit gleitender Linie ═══ */
+const tabline=document.getElementById('tabline');
+function moveTabline(){
+  const active=document.querySelector('nav [aria-selected="true"]');
+  if(!active)return;
+  tabline.style.left=active.offsetLeft+'px';
+  tabline.style.width=active.offsetWidth+'px';
+}
+document.querySelectorAll('nav [role="tab"]').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('nav [role="tab"]').forEach(b=>b.setAttribute('aria-selected',b===btn?'true':'false'));
+    document.querySelectorAll('main section').forEach(s=>s.hidden=true);
+    document.getElementById('tab-'+btn.dataset.tab).hidden=false;
+    moveTabline();
+  });
+});
+window.addEventListener('resize',moveTabline);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(moveTabline);
+moveTabline();
+
+/* ═══ Helfer ═══ */
+const reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const parseDec=v=>{
+  const n=parseFloat(String(v).trim().replace(',','.'));
+  return Number.isFinite(n)?n:null;
+};
+const fmtDe=(n,d=2)=>n.toLocaleString('de-CH',{minimumFractionDigits:0,maximumFractionDigits:d});
+const toMin=v=>{
+  if(!v)return null;
+  const[h,m]=v.split(':').map(Number);
+  return h*60+m;
+};
+/* Resultat mit sanftem Hochzählen */
+function rollTo(el,target,renderFn){
+  if(reduceMotion||target<=0){el.innerHTML=renderFn(target);return;}
+  const dur=550,t0=performance.now();
+  function step(t){
+    const p=Math.min((t-t0)/dur,1);
+    const eased=1-Math.pow(1-p,3);
+    el.innerHTML=renderFn(target*eased);
+    if(p<1)requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+const renderHM=totalMin=>{
+  const r=Math.round(totalMin),h=Math.floor(r/60),m=r%60;
+  return `${h}<em>h</em>${String(m).padStart(2,'0')}<em>min</em>`;
+};
+function showResult(id,ok){
+  const el=document.getElementById(id);
+  el.classList.remove('show','error');
+  void el.offsetWidth; // Animation neu starten
+  el.classList.add('show');
+  if(!ok)el.classList.add('error');
+}
+
+/* ═══ Enter: zum nächsten leeren Feld, dann Berechnen ═══ */
+const enterActions={'tab-arbeit':'calcWork','tab-umrechnung':'calcDec','tab-ferien':'calcFerien'};
+document.querySelector('main').addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||e.target.tagName!=='INPUT')return;
+  const section=e.target.closest('section[role="tabpanel"]');
+  if(!section)return;
+  e.preventDefault();
+  const inputs=[...section.querySelectorAll('input')];
+  const idx=inputs.indexOf(e.target);
+  const next=inputs.slice(idx+1).find(i=>!i.value);
+  if(next){next.focus();return;}
+  const btn=document.getElementById(enterActions[section.id]);
+  if(btn)btn.click();
+});
+
+/* ═══ Arbeitszeit ═══ */
+const blocksEl=document.getElementById('blocks');
+let blockCount=0;
+
+function addBlock(focus){
+  blockCount++;
+  const el=document.createElement('div');
+  el.className='block';
+  el.innerHTML=`
+    <div class="tag"><span>Zeitblock ${String(blockCount).padStart(2,'0')}</span>
+      ${blockCount>1?'<button class="remove" type="button">Entfernen</button>':''}
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Startzeit</label><input type="time" class="t-start"></div>
+      <div class="field"><label>Endzeit</label><input type="time" class="t-end"></div>
+      <div class="field"><label>Pausenbeginn</label><input type="time" class="t-ps"></div>
+      <div class="field"><label>Pausenende</label><input type="time" class="t-pe"></div>
+    </div>`;
+  const rm=el.querySelector('.remove');
+  if(rm)rm.addEventListener('click',()=>{el.remove();renumber();});
+  blocksEl.appendChild(el);
+  if(focus)el.querySelector('.t-start').focus();
+}
+function renumber(){
+  blocksEl.querySelectorAll('.block .tag span').forEach((s,i)=>{
+    s.textContent='Zeitblock '+String(i+1).padStart(2,'0');
+  });
+  blockCount=blocksEl.querySelectorAll('.block').length;
+}
+addBlock(false);
+document.getElementById('addBlock').addEventListener('click',()=>addBlock(true));
+
+document.getElementById('calcWork').addEventListener('click',()=>{
+  let total=0,valid=false,fehler='';
+  blocksEl.querySelectorAll('.block').forEach(b=>{
+    const s=toMin(b.querySelector('.t-start').value);
+    const e=toMin(b.querySelector('.t-end').value);
+    const ps=toMin(b.querySelector('.t-ps').value);
+    const pe=toMin(b.querySelector('.t-pe').value);
+    if(s===null||e===null)return;
+    let work=e-s;
+    if(work<0)work+=1440; // über Mitternacht
+    if(ps!==null&&pe!==null){
+      let p=pe-ps;
+      if(p<0)p+=1440;
+      work-=p;
+    }else if((ps===null)!==(pe===null)){
+      fehler='Bitte Pausenbeginn und Pausenende gemeinsam angeben.';
+      return;
+    }
+    if(work<0)work=0;
+    total+=work;valid=true;
+  });
+  const big=document.getElementById('workBig');
+  const sub=document.getElementById('workSub');
+  if(fehler||!valid){
+    showResult('workResult',false);
+    big.textContent='Angaben unvollständig';
+    sub.textContent=fehler||'Bitte mindestens Start- und Endzeit eintragen.';
+    return;
+  }
+  showResult('workResult',true);
+  rollTo(big,total,renderHM);
+  sub.innerHTML=`Dezimal: <b>${fmtDe(total/60,2)} h</b> · insgesamt <b>${total} min</b>`;
+});
+
+document.getElementById('resetWork').addEventListener('click',()=>{
+  blocksEl.innerHTML='';blockCount=0;addBlock(true);
+  document.getElementById('workResult').classList.remove('show');
+});
+
+/* ═══ Umrechnung ═══ */
+document.getElementById('calcDec').addEventListener('click',()=>{
+  const v=parseDec(document.getElementById('decInput').value);
+  const big=document.getElementById('decBig');
+  const sub=document.getElementById('decSub');
+  if(v===null||v<0){
+    showResult('decResult',false);
+    big.textContent='Ungültige Eingabe';
+    sub.textContent='Bitte eine Zahl eingeben, z. B. 7,75.';
+    return;
+  }
+  const totalMin=Math.round(v*60);
+  showResult('decResult',true);
+  rollTo(big,totalMin,renderHM);
+  sub.innerHTML=`${fmtDe(v,2)} Dezimalstunden entsprechen <b>${totalMin} min</b>`;
+});
+document.getElementById('resetDec').addEventListener('click',()=>{
+  const i=document.getElementById('decInput');
+  i.value='';i.focus();
+  document.getElementById('decResult').classList.remove('show');
+});
+
+/* ═══ Ferien ═══ */
+document.getElementById('calcFerien').addEventListener('click',()=>{
+  const total=parseDec(document.getElementById('ferienStunden').value);
+  const perDay=parseDec(document.getElementById('stundenProTag').value);
+  const big=document.getElementById('ferienBig');
+  const sub=document.getElementById('ferienSub');
+  if(total===null||perDay===null||perDay<=0||total<0){
+    showResult('ferienResult',false);
+    big.textContent='Angaben unvollständig';
+    sub.textContent='Bitte beide Felder mit gültigen Zahlen ausfüllen.';
+    return;
+  }
+  const days=total/perDay;
+  const full=Math.floor(days);
+  const restH=total-full*perDay;
+  showResult('ferienResult',true);
+  rollTo(big,days,v=>`${fmtDe(v,2)}<em>Tage</em>`);
+  sub.innerHTML=restH>0.001
+    ?`Das sind <b>${full}</b> ganze Tage und ein Rest von <b>${fmtDe(restH,2)} h</b>`
+    :`Das Guthaben geht genau auf.`;
+});
+document.getElementById('resetFerien').addEventListener('click',()=>{
+  document.getElementById('ferienStunden').value='';
+  document.getElementById('stundenProTag').value='';
+  document.getElementById('ferienStunden').focus();
+  document.getElementById('ferienResult').classList.remove('show');
+});
+</script>
+</body>
+</html>
